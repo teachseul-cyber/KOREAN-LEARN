@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>한글 모험단 - 초등 1-2학년 한글 학습 게이미피케이션</title>
+  <meta name="description" content="글자를 조립하고 받침과 단어를 익혀 글자 마왕에 도전하세요! 게이미피케이션 한글 학습 앱">
+  <link rel="stylesheet" href="./src/styles/main.css">
+</head>
+<body>
+
+  <div id="app">
+    <!-- 헤더 / 상단 상태바 -->
+    <header>
+      <div class="profile-info">
+        <div class="avatar-badge" id="headerAvatar">🦁</div>
+        <div>
+          <div class="player-name" id="headerName">한글 탐험가</div>
+          <div style="font-size:0.9rem; opacity:0.9;" id="authStatusText">익명 플레이 중</div>
+        </div>
+      </div>
+      <div class="stats-bar">
+        <!-- 절대 깨지지 않는 SVG 선명한 3D 골드 코인 -->
+        <div class="stat-pill" title="획득한 골드">
+          <svg class="stat-icon-svg coin-icon" viewBox="0 0 36 36" width="30" height="30">
+            <circle cx="18" cy="18" r="16" fill="#F59E0B" stroke="#B45309" stroke-width="2"/>
+            <circle cx="18" cy="18" r="13" fill="#FBBF24" stroke="#D97706" stroke-width="1.5"/>
+            <circle cx="18" cy="18" r="10" fill="#FEF3C7"/>
+            <text x="18" y="24" font-size="16" font-weight="900" fill="#B45309" text-anchor="middle" font-family="sans-serif">G</text>
+          </svg>
+          <span id="goldDisplay">0</span>
+        </div>
+        <!-- 절대 깨지지 않는 SVG 별 아이콘 -->
+        <div class="stat-pill" title="미니게임 클리어 횟수">
+          <svg class="stat-icon-svg star-icon" viewBox="0 0 36 36" width="30" height="30">
+            <path d="M18 2l4.9 10 11.1 1.6-8 7.8 1.9 11-9.9-5.2-9.9 5.2 1.9-11-8-7.8 11.1-1.6z" fill="#F59E0B" stroke="#B45309" stroke-width="2"/>
+            <path d="M18 5l3.8 7.7 8.5 1.2-6.1 6 1.4 8.5-7.6-4-7.6 4 1.4-8.5-6.1-6 8.5-1.2z" fill="#FDE047"/>
+          </svg>
+          <span id="clearCountDisplay">0</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- 네비게이션 탭 -->
+    <nav class="nav-tabs">
+      <button class="tab-btn active" data-target="screen-home">🏠 홈</button>
+      <button class="tab-btn" data-target="screen-game1">🧩 1. 글자조립</button>
+      <button class="tab-btn" data-target="screen-game2">🛡️ 2. 받침구출</button>
+      <button class="tab-btn" data-target="screen-game3">🎈 3. 풍선팡팡</button>
+      <button class="tab-btn" data-target="screen-boss" style="background:#EF4444; color:white;">😈 보스전</button>
+      <button class="tab-btn" data-target="screen-rank">🏆 명예의전당</button>
+    </nav>
+
+    <!-- 메인 컨텐츠 영역 -->
+    <main>
+
+      <!-- 화면 1: 로그인 & 프로필 설정 -->
+      <section id="screen-home" class="screen active">
+        <div class="title-large">✨ 한글 모험단 ✨</div>
+        <p style="font-size:1.3rem; margin-bottom:20px; color:#4B5563;">즐거운 한글 게임으로 공부하고 글자 마왕을 물리쳐요!</p>
+        
+        <div class="login-box">
+          <h2>캐릭터 아바타 선택</h2>
+          <div class="avatar-selector">
+            <div class="avatar-opt selected" data-avatar="🦁">🦁</div>
+            <div class="avatar-opt" data-avatar="🐯">🐯</div>
+            <div class="avatar-opt" data-avatar="🐰">🐰</div>
+            <div class="avatar-opt" data-avatar="🦊">🦊</div>
+            <div class="avatar-opt" data-avatar="🐼">🐼</div>
+          </div>
+
+          <h2>모험가 이름</h2>
+          <input type="text" id="playerNameInput" class="name-input" value="한글 모험가" maxlength="8">
+
+          <div style="display:flex; flex-direction:column; gap:12px; margin-top:10px;">
+            <button class="btn-primary" id="btnStartGame">🚀 탐험 시작하기!</button>
+            <button class="btn-primary btn-google" id="btnGoogleAuth">
+              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="22" alt="Google">
+              Google 계정 로그인 (명예의 전당 저장)
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 화면 2: 미니게임 1 - 글자 조립소 -->
+      <section id="screen-game1" class="screen">
+        <h2>🧩 [미니게임 1] 글자 조립소</h2>
+        <p style="font-size:1.15rem; color:#059669; font-weight:bold; margin-top:4px; background:#D1FAE5; padding:6px 16px; border-radius:12px;">
+          💡 5문제를 완성할 때마다 골드를 얻을 수 있어요! (현재: <span id="game1ProgressText" style="color:#DC2626;">0 / 5</span>)
+        </p>
+        
+        <div style="margin-top:16px; font-size:1.5rem; color:#D97706;" id="game1TargetHint">
+          목표: "가" (🎒 가방)
+        </div>
+
+        <div class="combine-area">
+          <div class="slot-box" id="slotInitial">?</div>
+          <div class="plus-sign">+</div>
+          <div class="slot-box" id="slotVowel">?</div>
+          <div class="equals-sign">=</div>
+          <div class="result-box" id="slotResult">?</div>
+        </div>
+
+        <div style="width:100%; max-width:600px; margin-bottom:12px;">
+          <h3 style="margin-bottom:8px; font-size:1.2rem; color:#2563EB;">1단계: 알맞은 자음(초성) 1개 고르기</h3>
+          <div class="card-grid" id="consonantGrid"></div>
+        </div>
+
+        <div style="width:100%; max-width:600px;">
+          <h3 style="margin-bottom:8px; font-size:1.2rem; color:#059669;">2단계: 알맞은 모음(중성) 1개 고르기</h3>
+          <div class="card-grid" id="vowelGrid"></div>
+        </div>
+      </section>
+
+      <!-- 화면 3: 미니게임 2 - 받침 구출작전 -->
+      <section id="screen-game2" class="screen">
+        <h2>🛡️ [미니게임 2] 받침 구출작전</h2>
+        <p style="font-size:1.15rem; color:#059669; font-weight:bold; margin-top:4px; background:#D1FAE5; padding:6px 16px; border-radius:12px;">
+          💡 5문제를 구출할 때마다 골드를 얻을 수 있어요! (현재: <span id="game2ProgressText" style="color:#DC2626;">0 / 5</span>)
+        </p>
+
+        <div class="quiz-card-main">
+          <div class="hint-icon" id="game2Icon">🐱</div>
+          <div style="font-size:1.3rem; color:#475569;" id="game2HintText">야옹~ 귀여운 동물이에요!</div>
+          <div class="word-display" id="game2WordDisplay">고양 _</div>
+          <div class="options-row" id="game2OptionsRow">
+            <button class="option-btn">이</button>
+            <button class="option-btn">입</button>
+            <button class="option-btn">일</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 화면 4: 미니게임 3 - 단어 풍선 팡팡 -->
+      <section id="screen-game3" class="screen">
+        <h2>🎈 [미니게임 3] 단어 풍선 팡팡</h2>
+        <p style="font-size:1.15rem; color:#059669; font-weight:bold; margin-top:4px; background:#D1FAE5; padding:6px 16px; border-radius:12px;">
+          💡 5개의 단어를 완성할 때마다 골드를 얻을 수 있어요! (현재: <span id="game3ProgressText" style="color:#DC2626;">0 / 5</span>)
+        </p>
+
+        <div style="font-size:1.6rem; color:#2563EB; margin-top:10px;" id="game3Hint">
+          [🍎] 목표 단어: <span id="game3TargetWord" style="color:#DC2626; font-weight:bold;">사과</span>
+        </div>
+        <div style="font-size:1.2rem; color:#059669;" id="game3Progress">현재 완성: </div>
+
+        <div class="balloon-stage" id="balloonStage"></div>
+      </section>
+
+      <!-- 화면 5: 보스전 (글자 마왕) -->
+      <section id="screen-boss" class="screen">
+        <div class="boss-screen">
+          <div class="boss-header">
+            <span style="font-size:1.4rem;">😈 글자 마왕 보스전</span>
+            <div class="hp-bar-container">
+              <div class="hp-fill" id="bossHpFill"></div>
+            </div>
+            <span style="font-size:1.4rem;" id="bossTimerText">⏱️ 0.00초</span>
+          </div>
+
+          <div class="boss-character" id="bossAvatar">👿</div>
+
+          <div class="boss-quiz-box" id="bossQuizBox">
+            <div style="font-size:1.2rem; color:#6D28D9; margin-bottom:8px;" id="bossProgress">문제 1 / 10</div>
+            <div class="quiz-question" id="bossQuestion">퀴즈 준비 중...</div>
+            <div class="boss-options" id="bossOptions"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 화면 6: 명예의 전당 -->
+      <section id="screen-rank" class="screen">
+        <div class="title-large">🏆 명예의 전당 🏆</div>
+        <p style="font-size:1.2rem; color:#4B5563;">보스전을 클리어한 위대한 모험가들의 기록입니다!</p>
+
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th>순위</th>
+              <th>모험가</th>
+              <th>보스 시간</th>
+              <th>정답 수</th>
+              <th>모은 골드</th>
+              <th>미니게임 클리어</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardBody">
+            <tr><td colspan="6">랭킹 로딩 중...</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- 모달 알림창 -->
+  <div class="modal-overlay" id="modalOverlay" style="display:none;">
+    <div class="modal-card">
+      <div class="modal-icon" id="modalIcon">🎉</div>
+      <h2 id="modalTitle" style="margin-bottom:12px;">축하합니다!</h2>
+      <p id="modalBody" style="font-size:1.2rem; color:#4B5563; margin-bottom:20px;">보스를 물리쳤습니다!</p>
+      <button class="btn-primary" id="modalCloseBtn">확인</button>
+    </div>
+  </div>
+
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>

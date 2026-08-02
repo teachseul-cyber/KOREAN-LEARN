@@ -1,0 +1,18 @@
+{
+  "name": "hangul-adventure",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.2.0"
+  },
+  "dependencies": {
+    "canvas-confetti": "^1.9.2",
+    "firebase": "^10.11.0"
+  }
+}
