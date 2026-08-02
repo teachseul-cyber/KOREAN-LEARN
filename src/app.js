@@ -30,7 +30,6 @@ const state = {
   clearCount: 0,
   currentScreen: 'screen-home',
 
-  // 미니게임 1 상태 (5문제 풀어야 골드 지급)
   game1: {
     index: 0,
     solvedCount: 0,
@@ -38,13 +37,11 @@ const state = {
     selectedVowel: ''
   },
 
-  // 미니게임 2 상태
   game2: {
     index: 0,
     solvedCount: 0
   },
 
-  // 미니게임 3 상태
   game3: {
     index: 0,
     solvedCount: 0,
@@ -52,7 +49,6 @@ const state = {
     spawnTimer: null
   },
 
-  // 보스전 상태
   boss: {
     active: false,
     quizIndex: 0,
@@ -82,7 +78,6 @@ function initDOMElements() {
     btnStartGame: document.getElementById('btnStartGame'),
     btnGoogleAuth: document.getElementById('btnGoogleAuth'),
 
-    // 미니게임 1
     game1ProgressText: document.getElementById('game1ProgressText'),
     game1TargetHint: document.getElementById('game1TargetHint'),
     slotInitial: document.getElementById('slotInitial'),
@@ -91,21 +86,18 @@ function initDOMElements() {
     consonantGrid: document.getElementById('consonantGrid'),
     vowelGrid: document.getElementById('vowelGrid'),
 
-    // 미니게임 2
     game2ProgressText: document.getElementById('game2ProgressText'),
     game2Icon: document.getElementById('game2Icon'),
     game2HintText: document.getElementById('game2HintText'),
     game2WordDisplay: document.getElementById('game2WordDisplay'),
     game2OptionsRow: document.getElementById('game2OptionsRow'),
 
-    // 미니게임 3
     game3ProgressText: document.getElementById('game3ProgressText'),
     game3Hint: document.getElementById('game3Hint'),
     game3TargetWord: document.getElementById('game3TargetWord'),
     game3Progress: document.getElementById('game3Progress'),
     balloonStage: document.getElementById('balloonStage'),
 
-    // 보스전
     bossHpFill: document.getElementById('bossHpFill'),
     bossTimerText: document.getElementById('bossTimerText'),
     bossAvatar: document.getElementById('bossAvatar'),
@@ -113,10 +105,8 @@ function initDOMElements() {
     bossQuestion: document.getElementById('bossQuestion'),
     bossOptions: document.getElementById('bossOptions'),
 
-    // 명예의 전당
     leaderboardBody: document.getElementById('leaderboardBody'),
 
-    // 모달
     modalOverlay: document.getElementById('modalOverlay'),
     modalIcon: document.getElementById('modalIcon'),
     modalTitle: document.getElementById('modalTitle'),
@@ -173,6 +163,7 @@ function initApp() {
     switchScreen('screen-game1');
   });
 
+  // 구글 로그인 스마트 우회 및 친절 안내
   elements.btnGoogleAuth.addEventListener('click', async () => {
     sounds.playClick();
     try {
@@ -187,7 +178,13 @@ function initApp() {
         showModal('로그인 성공!', `${state.profile.name}님 환영합니다! 구글 계정이 연결되었습니다.`, '🎉');
       }
     } catch (err) {
-      showModal('로그인 안내', err.message || 'Google 로그인 중 오류가 발생했거나 연동 설정 전입니다.', 'ℹ️');
+      console.warn("Google Auth Warning:", err);
+      // 구글 도메인 미승인 시 바로 탐험가 모드로 자동 전환하여 막힘없이 플레이 지원!
+      loginAnonymously().then(user => {
+        if (user) state.profile.uid = user.uid;
+      });
+      showModal('모험가 모드로 시작!', '구글 도메인 승인 설정 전이므로 일반 모험가 모드로 게임을 시작합니다! (모든 게임과 명예의 전당 등록이 가능합니다)', '🦁');
+      switchScreen('screen-game1');
     }
   });
 
@@ -268,16 +265,13 @@ function fireConfetti() {
   }
 }
 
-// 헬퍼: 배열 셔플 및 정답 포함 4개 보석 카드 만들기
 function getLimitedOptions(correctItem, fullPool, count = 4) {
   const others = fullPool.filter(x => x !== correctItem);
   const shuffledOthers = [...others].sort(() => 0.5 - Math.random()).slice(0, count - 1);
   return [...shuffledOthers, correctItem].sort(() => 0.5 - Math.random());
 }
 
-// ==========================================
-// [미니게임 1] 글자 조립소 (4개 노출 개선!)
-// ==========================================
+// [미니게임 1]
 function initGame1() {
   const item = GAME1_DATA[state.game1.index % GAME1_DATA.length];
   state.game1.selectedInitial = '';
@@ -289,7 +283,6 @@ function initGame1() {
   elements.slotVowel.textContent = '?';
   elements.slotResult.textContent = '?';
 
-  // 정답을 포함한 4개 선별 자음 카드 렌더링
   const consonantChoices = getLimitedOptions(item.initial, CONSONANTS, 4);
   elements.consonantGrid.innerHTML = '';
   consonantChoices.forEach(c => {
@@ -305,7 +298,6 @@ function initGame1() {
     elements.consonantGrid.appendChild(card);
   });
 
-  // 정답을 포함한 4개 선별 모음 카드 렌더링
   const vowelChoices = getLimitedOptions(item.vowel, VOWELS, 4);
   elements.vowelGrid.innerHTML = '';
   vowelChoices.forEach(v => {
@@ -337,7 +329,6 @@ function checkGame1Combine() {
     state.game1.solvedCount += 1;
     updateUIStats();
 
-    // 5문제 완공 시 골드 수급!
     if (state.game1.solvedCount >= 5) {
       sounds.playCoin();
       fireConfetti();
@@ -362,9 +353,7 @@ function checkGame1Combine() {
   }
 }
 
-// ==========================================
-// [미니게임 2] 받침 구출작전 (5문제 성공 시 골드)
-// ==========================================
+// [미니게임 2]
 function initGame2() {
   const item = GAME2_DATA[state.game2.index % GAME2_DATA.length];
   updateUIStats();
@@ -387,7 +376,6 @@ function initGame2() {
         state.game2.solvedCount += 1;
         updateUIStats();
 
-        // 5문제 클리어 시 골드 수급!
         if (state.game2.solvedCount >= 5) {
           sounds.playCoin();
           fireConfetti();
@@ -415,9 +403,7 @@ function initGame2() {
   });
 }
 
-// ==========================================
-// [미니게임 3] 단어 풍선 팡팡 (5문제 성공 시 골드)
-// ==========================================
+// [미니게임 3]
 function initGame3() {
   clearInterval(state.game3.spawnTimer);
   const item = GAME3_DATA[state.game3.index % GAME3_DATA.length];
@@ -492,7 +478,6 @@ function spawnBalloon(item) {
         state.game3.solvedCount += 1;
         updateUIStats();
 
-        // 5단어 터뜨리기 성공 시 골드 획득!
         if (state.game3.solvedCount >= 5) {
           sounds.playCoin();
           fireConfetti();
