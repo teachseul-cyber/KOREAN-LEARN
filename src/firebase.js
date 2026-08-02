@@ -18,15 +18,34 @@ import {
   serverTimestamp 
 } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
 
-// Vercel 환경변수 탭(%09) 오염 방지: 완전 순수 정제 키값 고정 사용
+// 모든 탭(\t, %09) 및 공백 문자를 강력하게 강제 제거하는 보안 헬퍼
+function removeTabsAndSpaces(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/%09/gi, '')
+    .replace(/[\t\r\n\s]+/g, '')
+    .trim();
+}
+
+// Raw Config (Vercel 환경 변수 또는 내장 기본값)
+const rawApiKey = import.meta.env?.VITE_FIREBASE_API_KEY || "AIzaSyBTbZ0KejfFqsYihBExeKJP972fbXMa-RA";
+const rawAuthDomain = import.meta.env?.VITE_FIREBASE_AUTH_DOMAIN || "korean-33cd2.firebaseapp.com";
+const rawProjectId = import.meta.env?.VITE_FIREBASE_PROJECT_ID || "korean-33cd2";
+const rawStorageBucket = import.meta.env?.VITE_FIREBASE_STORAGE_BUCKET || "korean-33cd2.firebasestorage.app";
+const rawMessagingId = import.meta.env?.VITE_FIREBASE_MESSAGING_SENDER_ID || "1089232242314";
+const rawAppId = import.meta.env?.VITE_FIREBASE_APP_ID || "1:1089232242314:web:f1a5d18328c31e799f0f73";
+
+// Firebase 키 설정 (런타임 탭/공백 강제 박멸)
 const firebaseConfig = {
-  apiKey: "AIzaSyBTbZ0KejfFqsYihBExeKJP972fbXMa-RA",
-  authDomain: "korean-33cd2.firebaseapp.com",
-  projectId: "korean-33cd2",
-  storageBucket: "korean-33cd2.firebasestorage.app",
-  messagingSenderId: "1089232242314",
-  appId: "1:1089232242314:web:f1a5d18328c31e799f0f73"
+  apiKey: removeTabsAndSpaces(rawApiKey),
+  authDomain: removeTabsAndSpaces(rawAuthDomain),
+  projectId: removeTabsAndSpaces(rawProjectId),
+  storageBucket: removeTabsAndSpaces(rawStorageBucket),
+  messagingSenderId: removeTabsAndSpaces(rawMessagingId),
+  appId: removeTabsAndSpaces(rawAppId)
 };
+
+console.log("Cleaned Auth Domain:", firebaseConfig.authDomain);
 
 let app = null;
 let auth = null;
@@ -38,7 +57,7 @@ try {
   auth = getAuth(app);
   db = getFirestore(app);
   isFirebaseReady = true;
-  console.log("🔥 Firebase가 100% 정상 연결되었습니다!");
+  console.log("🔥 Firebase 연결 준비 완료!");
 } catch (err) {
   console.warn("⚠️ Firebase 초기화 에러:", err);
 }
@@ -60,7 +79,7 @@ export async function loginWithGoogle() {
       throw new Error("로그인 창이 닫혔습니다. 다시 구글 로그인 버튼을 눌러주세요.");
     }
     if (err.code === 'auth/unauthorized-domain') {
-      throw new Error("도메인이 미승인되었습니다. Firebase 콘솔에 현재 사이트 주소가 등록되었는지 확인해주세요.");
+      throw new Error("Firebase 콘솔의 [Authentication -> 설정 -> 승인된 도메인]에 현재 Vercel 주소가 추가되어 있는지 확인해주세요.");
     }
     throw new Error(err.message || "구글 로그인 중 문제가 발생했습니다.");
   }
