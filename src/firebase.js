@@ -18,24 +18,14 @@ import {
   serverTimestamp 
 } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
 
-// 공백/탭(%09) 문자 완전 제거 함수
-const cleanStr = (str) => (str || '').replace(/\s+/g, '').trim();
-
-const rawApiKey = import.meta.env?.VITE_FIREBASE_API_KEY || "AIzaSyBTbZ0KejfFqsYihBExeKJP972fbXMa-RA";
-const rawAuthDomain = import.meta.env?.VITE_FIREBASE_AUTH_DOMAIN || "korean-33cd2.firebaseapp.com";
-const rawProjectId = import.meta.env?.VITE_FIREBASE_PROJECT_ID || "korean-33cd2";
-const rawStorageBucket = import.meta.env?.VITE_FIREBASE_STORAGE_BUCKET || "korean-33cd2.firebasestorage.app";
-const rawMessagingId = import.meta.env?.VITE_FIREBASE_MESSAGING_SENDER_ID || "1089232242314";
-const rawAppId = import.meta.env?.VITE_FIREBASE_APP_ID || "1:1089232242314:web:f1a5d18328c31e799f0f73";
-
-// Firebase 키 설정 (공백 및 탭 문자 제거 정제)
+// Vercel 환경변수 탭(%09) 오염 방지: 완전 순수 정제 키값 고정 사용
 const firebaseConfig = {
-  apiKey: cleanStr(rawApiKey),
-  authDomain: cleanStr(rawAuthDomain),
-  projectId: cleanStr(rawProjectId),
-  storageBucket: cleanStr(rawStorageBucket),
-  messagingSenderId: cleanStr(rawMessagingId),
-  appId: cleanStr(rawAppId)
+  apiKey: "AIzaSyBTbZ0KejfFqsYihBExeKJP972fbXMa-RA",
+  authDomain: "korean-33cd2.firebaseapp.com",
+  projectId: "korean-33cd2",
+  storageBucket: "korean-33cd2.firebasestorage.app",
+  messagingSenderId: "1089232242314",
+  appId: "1:1089232242314:web:f1a5d18328c31e799f0f73"
 };
 
 let app = null;
@@ -48,7 +38,7 @@ try {
   auth = getAuth(app);
   db = getFirestore(app);
   isFirebaseReady = true;
-  console.log("🔥 Firebase 연결 완료 (공백 정제됨)!");
+  console.log("🔥 Firebase가 100% 정상 연결되었습니다!");
 } catch (err) {
   console.warn("⚠️ Firebase 초기화 에러:", err);
 }
