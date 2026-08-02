@@ -163,7 +163,7 @@ function initApp() {
     switchScreen('screen-game1');
   });
 
-  // 구글 로그인 스마트 우회 및 친절 안내
+  // 구글 로그인 처리 (정확한 유저 프로필 반영)
   elements.btnGoogleAuth.addEventListener('click', async () => {
     sounds.playClick();
     try {
@@ -174,17 +174,13 @@ function initApp() {
         state.profile.isAnonymous = false;
         elements.playerNameInput.value = state.profile.name;
         elements.headerName.textContent = state.profile.name;
-        elements.authStatusText.textContent = 'Google 계정 연결됨';
-        showModal('로그인 성공!', `${state.profile.name}님 환영합니다! 구글 계정이 연결되었습니다.`, '🎉');
+        elements.authStatusText.textContent = `Google: ${user.email || state.profile.name}`;
+        
+        showModal('🎉 Google 로그인 성공!', `${state.profile.name} 모험가님 환영합니다! 명예의 전당에 본인 기록이 안전하게 연결됩니다.`, '👑');
       }
     } catch (err) {
       console.warn("Google Auth Warning:", err);
-      // 구글 도메인 미승인 시 바로 탐험가 모드로 자동 전환하여 막힘없이 플레이 지원!
-      loginAnonymously().then(user => {
-        if (user) state.profile.uid = user.uid;
-      });
-      showModal('모험가 모드로 시작!', '구글 도메인 승인 설정 전이므로 일반 모험가 모드로 게임을 시작합니다! (모든 게임과 명예의 전당 등록이 가능합니다)', '🦁');
-      switchScreen('screen-game1');
+      showModal('로그인 안내', err.message || '구글 로그인 중 문제가 발생했습니다.', 'ℹ️');
     }
   });
 
@@ -194,15 +190,13 @@ function initApp() {
   });
 
   subscribeAuthState(user => {
-    if (user) {
+    if (user && !user.isAnonymous) {
       state.profile.uid = user.uid;
-      if (!user.isAnonymous) {
-        state.profile.name = user.displayName || '구글 모험가';
-        state.profile.isAnonymous = false;
-        elements.headerName.textContent = state.profile.name;
-        elements.playerNameInput.value = state.profile.name;
-        elements.authStatusText.textContent = 'Google 계정 연결됨';
-      }
+      state.profile.name = user.displayName || '구글 모험가';
+      state.profile.isAnonymous = false;
+      elements.headerName.textContent = state.profile.name;
+      elements.playerNameInput.value = state.profile.name;
+      elements.authStatusText.textContent = `Google: ${user.email || state.profile.name}`;
     }
   });
 

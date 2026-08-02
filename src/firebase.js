@@ -18,7 +18,7 @@ import {
   serverTimestamp 
 } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
 
-// Firebase 키 설정 (전달해주신 프로젝트 키 내장)
+// Firebase 키 설정 (전달해주신 프로젝트 키)
 const firebaseConfig = {
   apiKey: "AIzaSyBTbZ0KejfFqsYihBExeKJP972fbXMa-RA",
   authDomain: "korean-33cd2.firebaseapp.com",
@@ -38,29 +38,31 @@ try {
   auth = getAuth(app);
   db = getFirestore(app);
   isFirebaseReady = true;
-  console.log("🔥 Firebase가 완벽하게 연결되었습니다!");
+  console.log("🔥 Firebase 연결 완료!");
 } catch (err) {
-  console.warn("⚠️ Firebase 연결 경고:", err);
+  console.warn("⚠️ Firebase 초기화 에러:", err);
 }
 
-// 1. Google 로그인 (에러 상세 분기)
+// 1. Google 로그인 (계정 선택 창 강제 호출 설정)
 export async function loginWithGoogle() {
   if (!isFirebaseReady || !auth) {
-    throw new Error("Firebase 초기화에 실패했습니다.");
+    throw new Error("Firebase 인증 서비스에 연결할 수 없습니다.");
   }
   const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+
   try {
     const result = await signInWithPopup(auth, provider);
     return result.user;
   } catch (err) {
-    console.error("Google Auth Error:", err);
+    console.error("Google Auth Detailed Error:", err);
+    if (err.code === 'auth/popup-closed-by-user') {
+      throw new Error("로그인 창이 닫혔습니다. 다시 구글 로그인 버튼을 눌러주세요.");
+    }
     if (err.code === 'auth/unauthorized-domain') {
-      throw new Error("Firebase 콘솔의 [Authentication -> Settings -> Authorized domains]에 현재 Vercel 사이트 주소를 추가해야 구글 로그인이 가능합니다.");
+      throw new Error("도메인이 미승인되었습니다. Firebase 콘솔에 'koreanlearn.vercel.app' 주소가 완전히 저장되었는지 확인해주세요.");
     }
-    if (err.code === 'auth/popup-blocked') {
-      throw new Error("브라우저 팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.");
-    }
-    throw new Error(err.message || "구글 로그인 중 오류가 발생했습니다.");
+    throw new Error(err.message || "구글 로그인 중 문제가 발생했습니다.");
   }
 }
 
