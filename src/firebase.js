@@ -18,14 +18,14 @@ import {
   serverTimestamp 
 } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
 
-// Firebase 설정 (환경 변수 + 기본값 Fallback 내장으로 Vercel에서 즉시 100% 동작)
+// Firebase 키 설정 (전달해주신 프로젝트 키 내장)
 const firebaseConfig = {
-  apiKey: import.meta.env?.VITE_FIREBASE_API_KEY || "AIzaSyBTbZ0KejfFqsYihBExeKJP972fbXMa-RA",
-  authDomain: import.meta.env?.VITE_FIREBASE_AUTH_DOMAIN || "korean-33cd2.firebaseapp.com",
-  projectId: import.meta.env?.VITE_FIREBASE_PROJECT_ID || "korean-33cd2",
-  storageBucket: import.meta.env?.VITE_FIREBASE_STORAGE_BUCKET || "korean-33cd2.firebasestorage.app",
-  messagingSenderId: import.meta.env?.VITE_FIREBASE_MESSAGING_SENDER_ID || "1089232242314",
-  appId: import.meta.env?.VITE_FIREBASE_APP_ID || "1:1089232242314:web:f1a5d18328c31e799f0f73"
+  apiKey: "AIzaSyBTbZ0KejfFqsYihBExeKJP972fbXMa-RA",
+  authDomain: "korean-33cd2.firebaseapp.com",
+  projectId: "korean-33cd2",
+  storageBucket: "korean-33cd2.firebasestorage.app",
+  messagingSenderId: "1089232242314",
+  appId: "1:1089232242314:web:f1a5d18328c31e799f0f73"
 };
 
 let app = null;
@@ -33,25 +33,35 @@ let auth = null;
 let db = null;
 let isFirebaseReady = false;
 
-// Firebase 초기화 시도
 try {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   db = getFirestore(app);
   isFirebaseReady = true;
-  console.log("🔥 Firebase가 성공적으로 연결되었습니다!");
+  console.log("🔥 Firebase가 완벽하게 연결되었습니다!");
 } catch (err) {
-  console.warn("⚠️ Firebase 초기화 실패 (LocalStorage 전환):", err);
+  console.warn("⚠️ Firebase 연결 경고:", err);
 }
 
-// 1. Google 로그인
+// 1. Google 로그인 (에러 상세 분기)
 export async function loginWithGoogle() {
   if (!isFirebaseReady || !auth) {
-    throw new Error("Firebase가 초기화되지 않았습니다.");
+    throw new Error("Firebase 초기화에 실패했습니다.");
   }
   const provider = new GoogleAuthProvider();
-  const result = await signInWithPopup(auth, provider);
-  return result.user;
+  try {
+    const result = await signInWithPopup(auth, provider);
+    return result.user;
+  } catch (err) {
+    console.error("Google Auth Error:", err);
+    if (err.code === 'auth/unauthorized-domain') {
+      throw new Error("Firebase 콘솔의 [Authentication -> Settings -> Authorized domains]에 현재 Vercel 사이트 주소를 추가해야 구글 로그인이 가능합니다.");
+    }
+    if (err.code === 'auth/popup-blocked') {
+      throw new Error("브라우저 팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.");
+    }
+    throw new Error(err.message || "구글 로그인 중 오류가 발생했습니다.");
+  }
 }
 
 // 2. 익명 로그인
