@@ -18,34 +18,40 @@ import {
   serverTimestamp 
 } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
 
-// 모든 탭(\t, %09) 및 공백 문자를 강력하게 강제 제거하는 보안 헬퍼
-function removeTabsAndSpaces(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/%09/gi, '')
-    .replace(/[\t\r\n\s]+/g, '')
-    .trim();
+// 도메인 전용 완전 정제 헬퍼 (알파벳, 숫자, 하이픈, 점 이외의 모든 %09, 탭, 공백 완벽 제거)
+function sanitizeDomain(domain) {
+  if (!domain) return "korean-33cd2.firebaseapp.com";
+  // %09 및 모든 비정상 문자 제거 후 정제
+  const cleaned = String(domain).replace(/%09/gi, '').replace(/[^a-zA-Z0-9.-]/g, '').trim();
+  return cleaned.includes('firebaseapp.com') ? cleaned : "korean-33cd2.firebaseapp.com";
 }
 
-// Raw Config (Vercel 환경 변수 또는 내장 기본값)
-const rawApiKey = import.meta.env?.VITE_FIREBASE_API_KEY || "AIzaSyBTbZ0KejfFqsYihBExeKJP972fbXMa-RA";
-const rawAuthDomain = import.meta.env?.VITE_FIREBASE_AUTH_DOMAIN || "korean-33cd2.firebaseapp.com";
-const rawProjectId = import.meta.env?.VITE_FIREBASE_PROJECT_ID || "korean-33cd2";
-const rawStorageBucket = import.meta.env?.VITE_FIREBASE_STORAGE_BUCKET || "korean-33cd2.firebasestorage.app";
-const rawMessagingId = import.meta.env?.VITE_FIREBASE_MESSAGING_SENDER_ID || "1089232242314";
-const rawAppId = import.meta.env?.VITE_FIREBASE_APP_ID || "1:1089232242314:web:f1a5d18328c31e799f0f73";
+// API 키 전용 정제 헬퍼 (알파벳, 숫자, 하이픈, 언더바만 허용)
+function sanitizeApiKey(key) {
+  if (!key) return "AIzaSyBTbZ0KejfFqsYihBExeKJP972fbXMa-RA";
+  const cleaned = String(key).replace(/%09/gi, '').replace(/[^a-zA-Z0-9_-]/g, '').trim();
+  return cleaned.length > 20 ? cleaned : "AIzaSyBTbZ0KejfFqsYihBExeKJP972fbXMa-RA";
+}
 
-// Firebase 키 설정 (런타임 탭/공백 강제 박멸)
+const rawApiKey = import.meta.env?.VITE_FIREBASE_API_KEY;
+const rawAuthDomain = import.meta.env?.VITE_FIREBASE_AUTH_DOMAIN;
+const rawProjectId = import.meta.env?.VITE_FIREBASE_PROJECT_ID;
+const rawStorageBucket = import.meta.env?.VITE_FIREBASE_STORAGE_BUCKET;
+const rawMessagingId = import.meta.env?.VITE_FIREBASE_MESSAGING_SENDER_ID;
+const rawAppId = import.meta.env?.VITE_FIREBASE_APP_ID;
+
+// Firebase 키 설정 (알파벳/숫자 외 모든 오염 문자 완벽 차단)
 const firebaseConfig = {
-  apiKey: removeTabsAndSpaces(rawApiKey),
-  authDomain: removeTabsAndSpaces(rawAuthDomain),
-  projectId: removeTabsAndSpaces(rawProjectId),
-  storageBucket: removeTabsAndSpaces(rawStorageBucket),
-  messagingSenderId: removeTabsAndSpaces(rawMessagingId),
-  appId: removeTabsAndSpaces(rawAppId)
+  apiKey: sanitizeApiKey(rawApiKey),
+  authDomain: sanitizeDomain(rawAuthDomain),
+  projectId: rawProjectId ? String(rawProjectId).replace(/[^a-zA-Z0-9-]/g, '') : "korean-33cd2",
+  storageBucket: rawStorageBucket ? String(rawStorageBucket).replace(/[^a-zA-Z0-9.-]/g, '') : "korean-33cd2.firebasestorage.app",
+  messagingSenderId: rawMessagingId ? String(rawMessagingId).replace(/[^0-9]/g, '') : "1089232242314",
+  appId: rawAppId ? String(rawAppId).replace(/[^a-zA-Z0-9::._-]/g, '') : "1:1089232242314:web:f1a5d18328c31e799f0f73"
 };
 
-console.log("Cleaned Auth Domain:", firebaseConfig.authDomain);
+console.log("Sanitized Auth Domain:", firebaseConfig.authDomain);
+console.log("Sanitized API Key:", firebaseConfig.apiKey);
 
 let app = null;
 let auth = null;
@@ -57,7 +63,7 @@ try {
   auth = getAuth(app);
   db = getFirestore(app);
   isFirebaseReady = true;
-  console.log("🔥 Firebase 연결 준비 완료!");
+  console.log("🔥 Firebase가 100% 철통 방어로 연결되었습니다!");
 } catch (err) {
   console.warn("⚠️ Firebase 초기화 에러:", err);
 }
