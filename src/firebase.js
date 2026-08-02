@@ -18,14 +18,14 @@ import {
   serverTimestamp 
 } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
 
-// 환경 변수 읽기
+// Firebase 설정 (환경 변수 + 기본값 Fallback 내장으로 Vercel에서 즉시 100% 동작)
 const firebaseConfig = {
-  apiKey: import.meta.env?.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env?.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env?.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env?.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env?.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env?.VITE_FIREBASE_APP_ID
+  apiKey: import.meta.env?.VITE_FIREBASE_API_KEY || "AIzaSyBTbZ0KejfFqsYihBExeKJP972fbXMa-RA",
+  authDomain: import.meta.env?.VITE_FIREBASE_AUTH_DOMAIN || "korean-33cd2.firebaseapp.com",
+  projectId: import.meta.env?.VITE_FIREBASE_PROJECT_ID || "korean-33cd2",
+  storageBucket: import.meta.env?.VITE_FIREBASE_STORAGE_BUCKET || "korean-33cd2.firebasestorage.app",
+  messagingSenderId: import.meta.env?.VITE_FIREBASE_MESSAGING_SENDER_ID || "1089232242314",
+  appId: import.meta.env?.VITE_FIREBASE_APP_ID || "1:1089232242314:web:f1a5d18328c31e799f0f73"
 };
 
 let app = null;
@@ -34,24 +34,20 @@ let db = null;
 let isFirebaseReady = false;
 
 // Firebase 초기화 시도
-if (firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.apiKey !== 'your_api_key_here') {
-  try {
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    isFirebaseReady = true;
-    console.log("🔥 Firebase가 성공적으로 연결되었습니다.");
-  } catch (err) {
-    console.warn("⚠️ Firebase 초기화 실패 (LocalStorage 전환):", err);
-  }
-} else {
-  console.log("ℹ️ Firebase API 키가 설정되지 않아 로컬 저장소(LocalStorage) 모드로 동작합니다.");
+try {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+  isFirebaseReady = true;
+  console.log("🔥 Firebase가 성공적으로 연결되었습니다!");
+} catch (err) {
+  console.warn("⚠️ Firebase 초기화 실패 (LocalStorage 전환):", err);
 }
 
 // 1. Google 로그인
 export async function loginWithGoogle() {
   if (!isFirebaseReady || !auth) {
-    throw new Error("Firebase 설정(API Key)이 설정되지 않았습니다. .env 파일을 작성 후 시도해주세요.");
+    throw new Error("Firebase가 초기화되지 않았습니다.");
   }
   const provider = new GoogleAuthProvider();
   const result = await signInWithPopup(auth, provider);
